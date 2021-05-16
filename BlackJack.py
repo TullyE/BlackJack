@@ -1,3 +1,8 @@
+'''
+everything here is now a code along I tried doing it with the notebook walkthrough... It kinda worked?
+but not completly
+I was done with the project but wanted to complete it so I just watched the code along
+'''
 import random
 
 #Vars
@@ -6,7 +11,7 @@ ranks = ('Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
 values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8, 'Nine':9, 'Ten':10, 'Jack':10, 'Queen':10, 'King':10, 'Ace':11}
 playing = True
 
-class Card:
+class Card():
     def __init__(self, suit, rank):
         self.suit = suit
         self.rank = rank
@@ -14,7 +19,7 @@ class Card:
     def __str__(self):
         return self.rank + ' of ' + self.suit
 
-class Deck:
+class Deck():
     def __init__(self):
         self.deck = []  # start with an empty list
         for suit in suits:
@@ -31,8 +36,7 @@ class Deck:
         random.shuffle(self.deck)
         
     def deal(self):
-        single_card = self.deck.pop()
-        return single_card
+        return self.deck.pop()
 
 class Hand:
     def __init__(self):
@@ -48,6 +52,8 @@ class Hand:
     
     def adjust_for_ace(self):
         #GOT FROM NOTEBOOK
+        # IF TOTAL VALUE > 21 AND I STILL HAVE AN ACE 
+        # THEN CHANGE MY ACE TO BE A 1 INSTEAD OF AN 11
         while self.value > 21 and self.aces:
             self.value -= 10
             self.aces -= 1
@@ -64,20 +70,19 @@ class Chips:
         self.total -= self.bet
 
 def take_bet(chips):
+    
     while True:
 
         try:
-            bid = int(input('Place your bid: '))
+            chips.bet = int(input('Place your bid: '))
         except:
             print('Whoops! That is an invalid bid')
-            continue
         else:
             if chips.bet > chips.total: #GOT THE CHECK FROM THE NOTEBOOK ///I DON'T KNOW HOW TO PLAY BLACKJACK OKAY!\\\
                 print("Sorry, you can't bid more than ", chips.total)
             else:
                 print('Bid has been placed')
                 break
-    return bid
 
 def hit(deck,hand):
     hand.add_card(deck.deal())
@@ -90,40 +95,50 @@ def hit_or_stand(deck,hand):
         player_option = input('Hit or Stand: ')
         if player_option == 'Hit':
             hit(deck, hand)
-            return 'Hit'
         elif player_option == 'Stand':
+            print("Player Stands Dealer's Turn")
             playing = False
-            return 'Stand'
         else:
             print('Whoops! Please type Hit or Stand')
             continue
+        break
 
 def show_some(player,dealer): #again copied from notebook
-    print("\nDealer's Hand:")
-    print(" <card hidden>")
-    print('',dealer.cards[1])  
-    print("\nPlayer's Hand:", *player.cards, sep='\n ')
+    print("\nDealer's Hand: ")
+    print("<card hidden>")
+    print(dealer.cards[1])  
+
+    print("\n Players's hand:")
+    for card in player.cards:
+        print(card)
     
 def show_all(player,dealer): #copied from notebook
-    print("\nDealer's Hand:", *dealer.cards, sep='\n ')
-    print("Dealer's Hand =",dealer.value)
-    print("\nPlayer's Hand:", *player.cards, sep='\n ')
-    print("Player's Hand =",player.value)
-def player_busts(chips):
+    print("\n Dealer's hand:")
+    for card in dealer.cards:
+        print(card)
+    print(f"Value of Dealer's Hand is: {dealer.value}")
+
+    print("\n Player's hand:")
+    for card in player.cards:
+        print(card)
+    print(f"Value of Player's Hand {player.value}")
+
+
+def player_busts(player, dealer, chips):
+    print('BUST PLAYER!')
     chips.lose_bet()
-    return 'Player went over 21! Oh No!'
 
-def player_wins(chips):
+def player_wins(player, dealer, chips):
+    print('PLAYER WINS!')
     chips.win_bet()
-    return 'Player wins!'
 
-def dealer_busts(chips):
+def dealer_busts(player, dealer, chips):
+    print('PLAYER WINS! DEALER BUSTED!')
     chips.win_bet()
-    return 'Dealer busts!'
     
-def dealer_wins(chips):
+def dealer_wins(player, dealer, chips):
+    print('DEALER WINS!')
     chips.lose_bet()
-    return 'Dealer wins!'
     
 def push():
     return "Dealer and PLayer tie! It's a push!"
@@ -143,9 +158,9 @@ while True:
     dealer_hand = Hand()
     dealer_hand.add_card(deck.deal())
     dealer_hand.add_card(deck.deal())
+
     # Set up the Player's chips
     player_chips = Chips()
-    dealer_chips = Chips()
     
     # Prompt the Player for their bet
     take_bet(player_chips)
@@ -163,29 +178,29 @@ while True:
         
         # If player's hand exceeds 21, run player_busts() and break out of loop
         if player_hand.value > 21:
-            player_busts(player_chips)
+            player_busts(player_hand, dealer_hand, player_chips)
             break
 
     # If Player hasn't busted, play Dealer's hand until Dealer reaches 17
-        if player_hand.value <= 21:
+    if player_hand.value <= 21:
 
-            while dealer_hand.value < 17:
-                hit(deck, dealer_hand)
+        while dealer_hand.value < 17:
+            hit(deck, dealer_hand)
 
-            # Show all cards
-            show_all(player_hand, dealer_hand)
-            # Run different winning scenarios
-            if dealer_hand.value > 21:
-                dealer_busts(dealer_chips)
-            elif dealer_hand.value > player_hand.value:
-                dealer_wins(dealer_chips)
-            elif dealer_hand.value < player_hand.value:
-                player_wins(player_chips)
-            elif dealer_hand.value == player_hand.value:
-                push()
+        # Show all cards
+        show_all(player_hand, dealer_hand)
+        # Run different winning scenarios
+        if dealer_hand.value > 21:
+            dealer_busts(player_hand, dealer_hand, player_chips)
+        elif dealer_hand.value > player_hand.value:
+            dealer_wins(player_hand, dealer_hand, player_chips)
+        elif dealer_hand.value < player_hand.value:
+            player_wins(player_hand, dealer_hand, player_chips)
+        else:
+            push()
         
         # Inform Player of their chips total 
-        print(f'Player currently has {player_chips.total}')
+        print(f'\nPlayer currently has {player_chips.total} chips')
         # Ask to play again (Copied from Notebook)
         new_game = input("Would you like to play another hand? Enter 'y' or 'n' ")
         
@@ -194,5 +209,12 @@ while True:
             continue
         else:
             print("Thanks for playing!")
-            playing = False
             break
+'''
+After redoing it with the walkthorugh I actuallyy did quite a bit of it correctly there was only small bits and pieces here and there where
+I made some errors
+Not too dissapointed with how this project went!
+
+Would Have enjoyed it more ofc if I had known how to actually play Blackjack
+I only vagly knew the rules... didn't know the ins/outs of it
+'''
